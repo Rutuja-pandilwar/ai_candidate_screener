@@ -4,7 +4,7 @@ TalentAI is a production-ready, full-stack, AI-powered role-based candidate tech
 
 ---
 
-## 📐 System Architecture & Workflow Flowchart
+##  System Architecture & Workflow Flowchart
 
 The following flowchart illustrates the complete data flow, from resume ingestion to dynamic evaluation and final executive reporting:
 
@@ -62,7 +62,7 @@ graph TD
 
 ---
 
-## 🧠 Advanced NLP Answer Evaluation Pipeline
+##  Advanced NLP Answer Evaluation Pipeline
 
 To prevent false-positive grading, TalentAI incorporates a multi-layer evaluation pipeline that intercept inputs locally before calculating semantic metrics.
 
@@ -109,7 +109,7 @@ Grades clarity out of 10.0 based on structural complexity (multi-sentence struct
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
 1. **AI-Driven Resume Parsing**: Processes uploaded PDF/TXT resumes, dynamically extracting skills, experience level, and domain exposure via Gemini.
 2. **Context-Grounded Question Generation (RAG)**: Queries a role-specific SQLite vector store containing textbook chapters to retrieve relevant concepts, custom-tailoring each question to both the syllabus and the candidate's background.
@@ -121,7 +121,7 @@ Grades clarity out of 10.0 based on structural complexity (multi-sentence struct
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 ai_candidate_screener/
@@ -164,7 +164,7 @@ ai_candidate_screener/
 
 ---
 
-## 🛠️ Technical Design Decisions
+##  Technical Design Decisions
 
 1. **Embedded SQLite Vector Search**: Rather than adding complex external vector database dependencies (like Chroma/Faiss) which frequently fail to compile in restricted sandboxes, we implemented cosine similarity search directly inside SQLite. High-dimensional embeddings (`text-embedding-004`) are saved as JSON arrays, loaded into memory, and evaluated in native Python. This ensures the project is 100% portable and has zero compilation issues.
 2. **FastAPI for Async Routing**: FastAPI provides an asynchronous backend with automatic OpenAPI documentation (`/docs`) and fast JSON serialization.
@@ -239,7 +239,7 @@ python verify_evaluator_mismatch.py
 
 ---
 
-## 📤 Step-by-Step GitHub Upload Instructions
+##  Step-by-Step GitHub Upload Instructions
 
 Follow these commands to push your project directory up to a new GitHub repository:
 
