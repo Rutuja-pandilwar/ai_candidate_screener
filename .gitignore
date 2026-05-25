@@ -46,3 +46,7 @@ frontend/dist/
 *.ntvs*
 *.njsproj
 *.sln
+
+# Large binaries
+**/ffmpeg.exe
+ffmpeg.exe

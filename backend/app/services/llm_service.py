@@ -6,122 +6,11 @@ from google import genai
 
 logger = logging.getLogger(__name__)
 
-MOCK_QUESTION_DATA = {
-    "ai_ml_engineer": [
-        {
-            "question_text": "What is the difference between supervised and unsupervised learning, and how do you mitigate overfitting in Decision Trees?",
-            "expected_keywords": ["supervised", "unsupervised", "overfitting", "pruning", "labeled", "features"],
-            "expected_concepts": ["Supervised learning uses labeled data", "Unsupervised learning finds hidden patterns", "Pruning mitigates overfitting", "Decision trees split nodes to maximize gain"],
-            "expected_answer_summary": "Supervised learning relies on labeled training pairs, whereas unsupervised learning identifies patterns in unlabeled data. Decision tree overfitting is controlled using post-pruning or setting max depth limits.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "Explain the bias-variance tradeoff and how Support Vector Machines (SVM) maximize the margin between classes.",
-            "expected_keywords": ["bias", "variance", "tradeoff", "margin", "hyperplane", "support", "vectors"],
-            "expected_concepts": ["High bias causes underfitting", "High variance causes overfitting", "SVM maximizes the margin", "Support vectors define boundary"],
-            "expected_answer_summary": "The bias-variance tradeoff balances model complexity to prevent underfitting and overfitting. SVM finds the optimal hyperplane that maximizes the geometric margin between class boundaries.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "Explain Bayes Theorem and how Maximum Likelihood Estimation (MLE) differs from Maximum A Posteriori (MAP).",
-            "expected_keywords": ["bayes", "theorem", "mle", "map", "prior", "posterior", "likelihood"],
-            "expected_concepts": ["Bayes theorem computes posterior", "MLE maximizes likelihood only", "MAP incorporates prior probability", "Estimation of parameters"],
-            "expected_answer_summary": "Bayes Theorem calculates posterior probability. MLE estimates parameters solely based on observed data, whereas MAP includes prior beliefs or distributions in its formulation.",
-            "difficulty": "advanced"
-        },
-        {
-            "question_text": "How does backpropagation work in neural networks, and what regularization methods (like L1/L2 or dropout) do you use?",
-            "expected_keywords": ["backpropagation", "gradient", "descent", "regularization", "dropout", "weights", "chain", "rule"],
-            "expected_concepts": ["Backpropagation uses the chain rule", "Gradients flow backwards", "L1/L2 adds penalty to loss", "Dropout randomly deactivates neurons"],
-            "expected_answer_summary": "Backpropagation computes loss gradients using the calculus chain rule, propagating errors backwards to update weights. Dropout and weight decay (L2) prevent network overfitting.",
-            "difficulty": "advanced"
-        },
-        {
-            "question_text": "What is Retrieval-Augmented Generation (RAG), and how does it improve LLM response accuracy compared to standard prompt tuning?",
-            "expected_keywords": ["retrieval", "augmented", "generation", "embeddings", "vector", "database", "grounded", "context"],
-            "expected_concepts": ["RAG retrieves external chunks", "Vector search matches query", "Grounded context prevents hallucination", "Improves LLM facts without retraining"],
-            "expected_answer_summary": "RAG retrieves relevant external text from a vector database and inserts it as context into the prompt, reducing LLM hallucinations and grounding responses in facts.",
-            "difficulty": "advanced"
-        }
-    ],
-    "backend_engineer": [
-        {
-            "question_text": "What are the main differences between REST, GraphQL, and gRPC, and when would you choose one over the others?",
-            "expected_keywords": ["rest", "graphql", "grpc", "http", "protobuf", "endpoints", "query"],
-            "expected_concepts": ["REST uses HTTP verbs and endpoints", "GraphQL allows client query select", "gRPC uses HTTP/2 and Protobuf", "Payload size and roundtrips"],
-            "expected_answer_summary": "REST uses standard resource endpoints and HTTP verbs. GraphQL lets clients specify required fields in a single query. gRPC utilizes Protobuf over HTTP/2 for high-performance RPC.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "Explain the ACID properties of relational databases and how they differ from BASE properties in NoSQL systems.",
-            "expected_keywords": ["acid", "base", "relational", "transactions", "nosql", "consistency", "availability"],
-            "expected_concepts": ["Atomicity Consistency Isolation Durability", "Basically Available Soft-state Eventual", "Relational transaction safety", "NoSQL high scalability trade-off"],
-            "expected_answer_summary": "ACID guarantees absolute reliability and transactional isolation in RDBMS. BASE prioritizes availability and eventual consistency for distributed NoSQL databases.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "What is the CAP Theorem, and how do databases like MongoDB and Cassandra choose between Consistency and Availability?",
-            "expected_keywords": ["cap", "theorem", "consistency", "availability", "partition", "tolerance", "cassandra", "mongodb"],
-            "expected_concepts": ["Cannot have C, A, and P together", "Network partition occurs", "MongoDB prioritizes Consistency (CP)", "Cassandra prioritizes Availability (AP)"],
-            "expected_answer_summary": "CAP theorem states distributed systems can only achieve two of Consistency, Availability, and Partition Tolerance. MongoDB is CP, sacrificing availability; Cassandra is AP, sacrificing consistency.",
-            "difficulty": "advanced"
-        },
-        {
-            "question_text": "What are the differences between Cache-Aside and Write-Through caching, and how do you handle cache eviction like LRU?",
-            "expected_keywords": ["cache", "aside", "through", "eviction", "lru", "hit", "miss", "invalidation"],
-            "expected_concepts": ["Cache-aside loads on miss", "Write-through updates cache and DB", "LRU evicts least recently used", "Eviction policies maintain size limits"],
-            "expected_answer_summary": "Cache-Aside queries cache first, loading from DB on miss. Write-Through writes to cache and DB simultaneously. LRU discards the oldest accessed keys when full.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "Explain the difference between Concurrency and Parallelism, and how message queues like RabbitMQ or Kafka handle asynchronous task processing.",
-            "expected_keywords": ["concurrency", "parallelism", "queues", "kafka", "rabbitmq", "asynchronous", "broker", "partitions"],
-            "expected_concepts": ["Concurrency is dealing with multiple tasks", "Parallelism is executing tasks at once", "RabbitMQ uses smart broker routing", "Kafka uses high throughput partitions"],
-            "expected_answer_summary": "Concurrency is managing multiple tasks at once; parallelism is running them simultaneously. RabbitMQ routes messages using exchanges, while Kafka logs events in ordered partitions.",
-            "difficulty": "advanced"
-        }
-    ],
-    "data_scientist": [
-        {
-            "question_text": "What is Exploratory Data Analysis (EDA), and how do you identify and handle outliers using the IQR (Interquartile Range) method?",
-            "expected_keywords": ["eda", "outliers", "iqr", "percentile", "quartile", "distribution", "handling"],
-            "expected_concepts": ["EDA discovers data patterns", "IQR is Q3 minus Q1", "Outliers are beyond 1.5 IQR limits", "Imputation or removal of outliers"],
-            "expected_answer_summary": "EDA explores dataset trends visually and statistically. The IQR method flags outliers lying 1.5 times the interquartile range outside the first and third quartiles.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "What are the differences between standardization (z-score) and normalization (min-max scaling), and when is each preferred?",
-            "expected_keywords": ["standardization", "normalization", "scaler", "z-score", "min-max", "scaling", "features"],
-            "expected_concepts": ["Standardization shifts to mean 0 variance 1", "Normalization bounds to 0 and 1 range", "Standardization handles extreme outliers better", "Min-max fits bounded algorithms"],
-            "expected_answer_summary": "Standardization centers data to zero mean and unit variance. Normalization scales attributes between 0 and 1. Standardization is preferred when outliers are present.",
-            "difficulty": "intermediate"
-        },
-        {
-            "question_text": "Explain Gini Impurity and how Ensemble Methods like Random Forest improve on single Decision Trees.",
-            "expected_keywords": ["gini", "impurity", "ensemble", "random", "forest", "variance", "bagging"],
-            "expected_concepts": ["Gini measures node split purity", "Ensemble aggregates predictions", "Random Forest uses bagging and features", "Reduces variance of single trees"],
-            "expected_answer_summary": "Gini Impurity measures the probability of misclassifying a random element. Random Forest aggregates multiple randomized decision trees to reduce overall variance.",
-            "difficulty": "advanced"
-        },
-        {
-            "question_text": "How do boosting algorithms like XGBoost, AdaBoost, and LightGBM work, and how do they differ from bagging?",
-            "expected_keywords": ["boosting", "xgboost", "adaboost", "lightgbm", "bagging", "sequential", "residuals"],
-            "expected_concepts": ["Bagging runs trees in parallel", "Boosting builds trees sequentially", "Each tree fits previous residuals", "XGBoost uses gradient regularization"],
-            "expected_answer_summary": "Bagging builds parallel models independently. Boosting builds sequential trees where each subsequent estimator corrects the errors of its predecessor.",
-            "difficulty": "advanced"
-        },
-        {
-            "question_text": "What metrics would you use to evaluate a highly imbalanced classification model? Explain Precision, Recall, F1-Score, and ROC-AUC.",
-            "expected_keywords": ["precision", "recall", "f1-score", "roc-auc", "imbalanced", "positives", "negatives"],
-            "expected_concepts": ["Accuracy is misleading for imbalance", "Precision is TP divided by TP+FP", "Recall is TP divided by TP+FN", "F1-Score is harmonic mean"],
-            "expected_answer_summary": "In imbalanced classes, standard accuracy is misleading. Instead, use Precision (true positive rate among predictions) and Recall (sensitivity), combined in the F1-Score.",
-            "difficulty": "advanced"
-        }
-    ]
-}
-
+# MOCK_QUESTION_DATA has been removed to ensure the system is entirely dynamic
+# and generates questions/answer guidelines on-the-fly based on the candidate's resume.
 
 class LLMService:
+
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY", "")
         self.enabled = bool(self.api_key)
@@ -168,16 +57,84 @@ class LLMService:
 
     # ---------------- RESUME ANALYSIS ----------------
     def analyze_resume(self, resume_text: str) -> dict:
-        default_profile = {
-            "name": "Candidate",
-            "email": "candidate@example.com",
-            "skills": ["Python", "Machine Learning", "Software Engineering"],
-            "experience_level": "mid",
-            "domain_exposure": ["API Design"]
-        }
+        # Dynamic local regex-based resume analysis fallback
+        def get_local_extracted_profile(text: str) -> dict:
+            import re
+            
+            # Clean up text
+            t = (text or "").lower()
+            
+            # 1. Extract name (check first few lines of text)
+            lines = [line.strip() for line in (text or "").split("\n") if line.strip()]
+            name = "Candidate"
+            if lines:
+                first_line = lines[0]
+                if len(first_line.split()) <= 4 and not any(kw in first_line.lower() for kw in ["resume", "cv", "curriculum", "email", "phone", "profile"]):
+                    name = first_line.title()
+            
+            # 2. Extract email via regex
+            email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text or "")
+            email = email_match.group(0) if email_match else "candidate@example.com"
+            
+            # 3. Scan for skills from a comprehensive list of technical keywords
+            tech_vocabulary = [
+                "python", "javascript", "typescript", "golang", "java", "c++", "c#", "ruby", "rust",
+                "fastapi", "flask", "django", "nodejs", "react", "nextjs", "vue", "angular",
+                "sqlite", "postgresql", "mysql", "mongodb", "redis", "cassandra", "dynamodb",
+                "docker", "kubernetes", "aws", "gcp", "azure", "terraform", "ansible",
+                "machine learning", "deep learning", "neural networks", "nlp", "computer vision",
+                "pytorch", "tensorflow", "keras", "scikit-learn", "pandas", "numpy", "transformers",
+                "sql", "nosql", "git", "ci/cd", "graphql", "grpc", "rest api", "apis", "rabbitmq", "kafka"
+            ]
+            
+            extracted_skills = []
+            for skill in tech_vocabulary:
+                pattern = r"\b" + re.escape(skill) + r"\b"
+                if re.search(pattern, t):
+                    # Format appropriately
+                    extracted_skills.append(skill.upper() if len(skill) <= 3 else skill.title())
+                    
+            if not extracted_skills:
+                extracted_skills = ["Python", "Software Engineering", "Database Systems"]
+                
+            # 4. Experience level detection
+            experience_level = "mid"
+            if any(term in t for term in ["senior", "lead", "architect", "principal", "years experience", "5+ years", "10+ years"]):
+                experience_level = "senior"
+            elif any(term in t for term in ["junior", "intern", "fresher", "entry level", "student"]):
+                experience_level = "junior"
+                
+            # 5. Domain exposure detection
+            domains = []
+            domain_glossary = {
+                "backend": "Backend Development",
+                "frontend": "Frontend Development",
+                "cloud": "Cloud Engineering",
+                "devops": "DevOps",
+                "fullstack": "Full Stack Engineering",
+                "nlp": "Natural Language Processing",
+                "vision": "Computer Vision",
+                "mlops": "MLOps",
+                "data scientist": "Data Science",
+                "api": "API Architecture",
+                "database": "Database Administration"
+            }
+            for key, val in domain_glossary.items():
+                if key in t:
+                    domains.append(val)
+            if not domains:
+                domains = ["Software Engineering"]
+                
+            return {
+                "name": name,
+                "email": email,
+                "skills": extracted_skills[:10],
+                "experience_level": experience_level,
+                "domain_exposure": domains[:3]
+            }
 
         if not self.enabled:
-            return default_profile
+            return get_local_extracted_profile(resume_text)
 
         prompt = f"""
 Extract structured resume info:
@@ -204,31 +161,92 @@ Resume:
 
         except Exception as e:
             logger.error(f"Resume analysis error: {e}")
-            return default_profile
+            return get_local_extracted_profile(resume_text)
 
     # ---------------- QUESTION GENERATION ----------------
     def generate_interview_question(self, role, candidate_profile, rag_context, previous_questions=None, previous_questions_text=None):
         prev_q = previous_questions_text if previous_questions_text is not None else (previous_questions if previous_questions is not None else [])
         
-        # Get fallback question data matching current role and session progress
         q_idx = len(prev_q)
-        role_questions = MOCK_QUESTION_DATA.get(role, MOCK_QUESTION_DATA["backend_engineer"])
-        mock_data = role_questions[q_idx % len(role_questions)]
         
-        # Structure fallback output
-        fallback_guideline = {
-            "question": mock_data["question_text"],
-            "expected_keywords": mock_data["expected_keywords"],
-            "expected_concepts": mock_data["expected_concepts"],
-            "expected_answer_summary": mock_data["expected_answer_summary"]
-        }
-        
-        if not self.enabled:
-            return {
-                "question_text": mock_data["question_text"],
-                "correct_answer_guideline": json.dumps(fallback_guideline),
-                "difficulty": mock_data["difficulty"]
+        # Build a dynamic local fallback question based on actual candidate skills
+        def get_dynamic_local_fallback():
+            import random
+            import re
+            
+            skills = candidate_profile.get("skills", [])
+            if not skills:
+                skills = ["Python", "Software Engineering", "Databases"]
+                
+            clean_skills = [s for s in skills if len(s) > 2]
+            if not clean_skills:
+                clean_skills = skills
+                
+            # Seed randomly based on candidate name and question index to ensure deterministic and progressive questions
+            random.seed(hash(candidate_profile.get("name", "Candidate")) + q_idx)
+            
+            # Select 1-2 skills
+            selected_skills = random.sample(clean_skills, min(2, len(clean_skills)))
+            skill1 = selected_skills[0]
+            skill2 = selected_skills[1] if len(selected_skills) > 1 else "alternative design options"
+            
+            # Technical templates targeting different aspects: architecture, data structures, integration, concurrency
+            templates = [
+                (
+                    "Explain the core architectural concepts of {skill1} and how you would apply it to solve scaling or performance challenges in a production environment.",
+                    ["architecture", "scale", "performance", "{skill1_clean}"],
+                    ["Understands core architecture of {skill1}", "Can apply scaling principles", "Knowledge of production optimizations"],
+                    "The core architecture of {skill1} involves managing processes, memory, and routing efficiently to handle scale and performance. Optimizations include caching, connection pooling, and resource tuning."
+                ),
+                (
+                    "In your experience working with {skill1}, what are the biggest design patterns or best practices you follow? Contrast this with alternative approaches like {skill2}.",
+                    ["design", "pattern", "practices", "{skill1_clean}", "{skill2_clean}"],
+                    ["Applies correct design patterns in {skill1}", "Follows industry best practices", "Can contrast {skill1} with {skill2}"],
+                    "Design patterns in {skill1} focus on code reuse, separation of concerns, and clean abstraction. Contrasting with {skill2} highlights trade-offs in complexity, speed, and standard methodologies."
+                ),
+                (
+                    "What is the difference between concurrency and parallelism when building applications using {skill1}? How does it handle heavy workloads?",
+                    ["concurrency", "parallelism", "workloads", "threads", "{skill1_clean}"],
+                    ["Differentiates concurrency from parallelism", "Knowledge of {skill1} execution model", "Handles async or multi-threaded workloads"],
+                    "Concurrency deals with managing multiple tasks at once (async), while parallelism executes them simultaneously on multiple CPU cores. In {skill1}, this is managed using event loops or thread pools."
+                ),
+                (
+                    "How do you handle error logging, unit testing, and continuous integration when deploying services built around {skill1} and {skill2}?",
+                    ["testing", "logging", "integration", "{skill1_clean}", "{skill2_clean}"],
+                    ["Implements logging and diagnostic practices", "Writes unit tests for {skill1}", "Sets up CI/CD pipeline automation"],
+                    "Deploying systems with {skill1} requires structured logging, automated unit tests, and integration testing in CI/CD pipelines to ensure code reliability and rapid, error-free releases."
+                )
+            ]
+            
+            template = templates[q_idx % len(templates)]
+            
+            q_text = template[0].format(skill1=skill1, skill2=skill2)
+            
+            expected_kws = [k.format(skill1_clean=skill1.lower(), skill2_clean=skill2.lower()) for k in template[1]]
+            expected_concs = [c.format(skill1=skill1, skill2=skill2) for c in template[2]]
+            expected_sum = template[3].format(skill1=skill1, skill2=skill2)
+            
+            guideline = {
+                "question": q_text,
+                "expected_keywords": expected_kws,
+                "expected_concepts": expected_concs,
+                "expected_answer_summary": expected_sum
             }
+            
+            diff = "intermediate"
+            if q_idx == 0:
+                diff = "beginner"
+            elif q_idx >= 3:
+                diff = "advanced"
+                
+            return {
+                "question_text": q_text,
+                "correct_answer_guideline": json.dumps(guideline),
+                "difficulty": diff
+            }
+            
+        if not self.enabled:
+            return get_dynamic_local_fallback()
 
         prompt = f"""
 You are an expert technical interviewer generating an interview question.
@@ -287,23 +305,15 @@ Return strictly a JSON object with this exact shape:
 
         except Exception as e:
             logger.error(f"Question generation error: {e}")
-            return {
-                "question_text": mock_data["question_text"],
-                "correct_answer_guideline": json.dumps(fallback_guideline),
-                "difficulty": mock_data["difficulty"]
-            }
+            return get_dynamic_local_fallback()
 
     # ---------------- ANSWER EVALUATION ----------------
     def evaluate_candidate_answer(self, question_text, guideline=None, correct_guideline=None, answer_text=None, candidate_answer=None):
         g = correct_guideline if correct_guideline is not None else guideline
         ans = candidate_answer if candidate_answer is not None else answer_text
         
-    # ---------------- ANSWER EVALUATION ----------------
-    def evaluate_candidate_answer(self, question_text, guideline=None, correct_guideline=None, answer_text=None, candidate_answer=None):
-        g = correct_guideline if correct_guideline is not None else guideline
-        ans = candidate_answer if candidate_answer is not None else answer_text
-        
         import json
+
         import re
         
         expected_keywords = []
